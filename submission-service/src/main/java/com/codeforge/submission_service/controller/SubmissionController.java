@@ -30,7 +30,8 @@ public class SubmissionController {
 
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String judgeUrl = "http://localhost:8082/api/judge";
+            String judgeUrl = "http://14.225.205.6:8082/api/judge";
+
             String problemUrl = "http://localhost:8080/api/problems/" + submission.getProblemId();
 
             ProblemDetailDto problemDto = restTemplate.getForObject(problemUrl, ProblemDetailDto.class);

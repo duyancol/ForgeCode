@@ -77,7 +77,7 @@ public class CodeBuilderService {
         return """
         #include <stdio.h>
         #include <stdlib.h>
-
+        #include <limits.h>
         %s {
         %s
         }
