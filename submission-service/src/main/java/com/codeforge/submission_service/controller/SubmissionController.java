@@ -12,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/submissions")
@@ -31,22 +33,13 @@ public class SubmissionController {
         try {
             RestTemplate restTemplate = new RestTemplate();
             String judgeUrl = "http://14.225.205.6:8082/api/judge";
-
             String problemUrl = "http://localhost:8080/api/problems/" + submission.getProblemId();
 
             ProblemDetailDto problemDto = restTemplate.getForObject(problemUrl, ProblemDetailDto.class);
 
-            System.out.println("🚨 methodName = " + problemDto.getMethodName());
-            System.out.println("🚨 methodSignature = " + problemDto.getMethodSignature());
-            System.out.println("🚨 returnType = " + problemDto.getReturnType());
-
             ObjectMapper objectMapper = new ObjectMapper();
             List<TestCase> testCases = objectMapper.readValue(problemDto.getTestCases(), new TypeReference<>() {});
-            String rawInput = testCases.get(0).input;
-            String formattedInput = normalizeInput(rawInput);
-            String expectedOutput = testCases.get(0).output;
 
-            System.out.println("📥 formattedInput gửi xuống: " + formattedInput);
             if (problemDto.getTemplates() == null) {
                 throw new IllegalStateException("Templates is null in problemDto");
             }
@@ -58,23 +51,45 @@ public class SubmissionController {
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("No mainCode found for language: " + language));
 
-            // 🔧 Build solutionCode tùy theo ngôn ngữ
-            String solutionCode;
-            if (language.equals("java")) {
-                solutionCode = codeBuilderService.buildFullCode(submission.getCode(), problemDto);
-            } else if (language.equals("c")) {
-                solutionCode = codeBuilderService.buildFullCodeC(submission.getCode(), problemDto);
-            } else {
-                throw new IllegalArgumentException("Unsupported language: " + language);
+            // 🔧 Build full solution code
+            String solutionCode = switch (language) {
+                case "java" -> codeBuilderService.buildFullCode(submission.getCode(), problemDto);
+                case "c" -> codeBuilderService.buildFullCodeC(submission.getCode(), problemDto);
+                default -> throw new IllegalArgumentException("Unsupported language: " + language);
+            };
+
+            // 🔁 Test each case
+            List<TestResult> testResults = new ArrayList<>();
+            String firstError = null;
+
+            for (TestCase testCase : testCases) {
+                String formattedInput = normalizeInput(testCase.input);
+                JudgeRequest request = new JudgeRequest(solutionCode, mainCode, formattedInput, testCase.output, language);
+
+                JudgeResponse response = restTemplate.postForObject(judgeUrl, request, JudgeResponse.class);
+                if (response == null) continue;
+
+                String actual = response.output != null ? response.output.trim() : "";
+                String expected = testCase.output.trim();
+                boolean passed = actual.equals(expected);
+
+                if (!passed && firstError == null && response.error != null && !response.error.isBlank()) {
+                    firstError = response.error.trim();
+                }
+
+                testResults.add(new TestResult(
+                        testCase.input,
+                        expected,
+                        actual,
+                        passed,
+                        response.error != null ? response.error.trim() : null
+                ));
             }
 
-            System.out.println("✅ Solution code:\n" + solutionCode);
-            System.out.println("✅ Main code from DB:\n" + mainCode);
+            long passedCount = testResults.stream().filter(TestResult::passed).count();
+            String finalStatus = passedCount == testCases.size() ? "PASS" : "FAIL";
 
-            var request = new JudgeRequest(solutionCode, mainCode, formattedInput, expectedOutput, language);
-            var response = restTemplate.postForObject(judgeUrl, request, JudgeResponse.class);
-
-            service.updateStatus(saved.getId(), response.status, response.output, response.error);
+            service.updateStatus(saved.getId(), finalStatus, testResults.toString(), firstError);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -115,4 +130,5 @@ public class SubmissionController {
     record JudgeRequest(String solutionCode, String mainCode, String input, String expectedOutput, String language) {}
     record JudgeResponse(String status, String output, String error) {}
     record TestCase(String input, String output) {}
+    record TestResult(String input, String expectedOutput, String actualOutput, boolean passed, String errorMessage) {}
 }

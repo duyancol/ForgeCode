@@ -5,7 +5,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import  com.codeforge.problemservice.model.TestCase;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,8 +26,10 @@ public class Problem {
     private String sampleInput;
     private String sampleOutput;
 
-    @Lob
-    private String testCases; // chuỗi JSON test case đơn giản
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "problem_testcase", joinColumns = @JoinColumn(name = "problem_id"))
+    private List<TestCase> testCases = new ArrayList<>();
+
 
     private String methodName;
     private String returnType;

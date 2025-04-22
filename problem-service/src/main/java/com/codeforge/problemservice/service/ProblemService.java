@@ -4,6 +4,7 @@ import com.codeforge.problemservice.dto.ProblemDetailDto;
 import com.codeforge.problemservice.dto.ProblemTemplateDto;
 import com.codeforge.problemservice.model.Problem;
 import com.codeforge.problemservice.repository.ProblemRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
 @Service
 public class ProblemService {
     private final ProblemRepository repo;
-
+    ObjectMapper mapper = new ObjectMapper();
     public ProblemService(ProblemRepository repo) {
         this.repo = repo;
     }
@@ -23,6 +24,12 @@ public class ProblemService {
             List<ProblemTemplateDto> templates = p.getTemplates().stream()
                     .map(t -> new ProblemTemplateDto(t.getLanguage(), t.getMainCode()))
                     .toList();
+            String testCaseJson = "";
+            try {
+                testCaseJson = mapper.writeValueAsString(p.getTestCases()); // 👈 chuyển List<TestCase> về JSON
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             return new ProblemDetailDto(
                     p.getId(),
@@ -32,7 +39,7 @@ public class ProblemService {
                     p.getTags(),
                     p.getSampleInput(),
                     p.getSampleOutput(),
-                    p.getTestCases(),
+                    testCaseJson,
                     p.getMethodName(),
                     p.getMethodSignature(),
                     p.getReturnType(),
@@ -85,7 +92,12 @@ public class ProblemService {
             List<ProblemTemplateDto> templates = p.getTemplates().stream()
                     .map(t -> new ProblemTemplateDto(t.getLanguage(), t.getMainCode()))
                     .toList();
-
+            String testCaseJson = "";
+            try {
+                testCaseJson = mapper.writeValueAsString(p.getTestCases()); // 👈 chuyển List<TestCase> về JSON
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return new ProblemDetailDto(
                     p.getId(),
                     p.getTitle(),
@@ -94,7 +106,7 @@ public class ProblemService {
                     p.getTags(),
                     p.getSampleInput(),
                     p.getSampleOutput(),
-                    p.getTestCases(),
+                    testCaseJson,
                     p.getMethodName(),
                     p.getMethodSignature(),
                     p.getReturnType(),
@@ -110,7 +122,12 @@ public class ProblemService {
             List<ProblemTemplateDto> templates = p.getTemplates().stream()
                     .map(t -> new ProblemTemplateDto(t.getLanguage(), t.getMainCode()))
                     .toList();
-
+            String testCaseJson = "";
+            try {
+                testCaseJson = mapper.writeValueAsString(p.getTestCases()); // 👈 chuyển List<TestCase> về JSON
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return new ProblemDetailDto(
                     p.getId(),
                     p.getTitle(),
@@ -119,7 +136,7 @@ public class ProblemService {
                     p.getTags(),
                     p.getSampleInput(),
                     p.getSampleOutput(),
-                    p.getTestCases(),
+                    testCaseJson,
                     p.getMethodName(),
                     p.getMethodSignature(),
                     p.getReturnType(),

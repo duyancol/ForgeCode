@@ -15,6 +15,7 @@ public class DockerRunner {
 
     public static JudgeResponse run(JudgeRequest req) throws Exception {
         Path tempRoot = Paths.get("/tmp/docker_tmp");
+        //Path tempRoot = Paths.get("C:/docker_tmp");
 
         if (!Files.exists(tempRoot)) Files.createDirectories(tempRoot);
         Path tempDir = Files.createTempDirectory(tempRoot, "judge_");
