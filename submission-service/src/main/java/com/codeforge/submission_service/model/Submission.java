@@ -31,6 +31,8 @@ public class Submission {
     private String errorMessage;
 
     private LocalDateTime createdAt;
+    @Column(name = "execution_time_ms")
+    private Long executionTimeMs;
 
     public Long getId() {
         return id;
@@ -103,4 +105,5 @@ public class Submission {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
 }

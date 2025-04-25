@@ -10,5 +10,6 @@ public class TestResult {
     private String expectedOutput;
     private String actualOutput;
     private boolean passed;
+    Long executionTimeMs;
 }
 

@@ -1,5 +1,6 @@
 package com.codeforge.submission_service.service;
 
+import com.codeforge.submission_service.dto.ExecutionTimeStats;
 import com.codeforge.submission_service.model.Submission;
 import com.codeforge.submission_service.repository.SubmissionRepository;
 import com.codeforge.submission_service.model.Submission;
@@ -22,6 +23,9 @@ public class SubmissionService {
     public Submission create(Submission submission) {
         submission.setStatus("PENDING");
         submission.setCreatedAt(LocalDateTime.now());
+        return repo.save(submission);
+    }
+    public Submission save(Submission submission) {
         return repo.save(submission);
     }
 
@@ -48,5 +52,8 @@ public class SubmissionService {
             sub.setErrorMessage(errorMessage);
             return repo.save(sub);
         }).orElseThrow();
+    }
+    public List<ExecutionTimeStats> getExecutionTimeStats(Long problemId, String language) {
+        return repo.countByExecutionTime(problemId, language);
     }
 }

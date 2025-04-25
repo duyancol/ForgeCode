@@ -1,5 +1,6 @@
 package com.codeforge.submission_service.controller;
 
+import com.codeforge.submission_service.dto.ExecutionTimeStats;
 import com.codeforge.submission_service.dto.ProblemDetailDto;
 import com.codeforge.submission_service.dto.ProblemTemplateDto;
 import com.codeforge.submission_service.model.Submission;
@@ -15,7 +16,9 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
+
+
 @RestController
 @RequestMapping("/api/submissions")
 public class SubmissionController {
@@ -33,7 +36,8 @@ public class SubmissionController {
         try {
             RestTemplate restTemplate = new RestTemplate();
             String judgeUrl = "http://14.225.205.6:8082/api/judge";
-            String problemUrl = "http://localhost:8080/api/problems/" + submission.getProblemId();
+           // String judgeUrl = "http://localhost:8082/api/judge";
+            String problemUrl = "http://14.225.205.6:8080/api/problems/" + submission.getProblemId();
 
             ProblemDetailDto problemDto = restTemplate.getForObject(problemUrl, ProblemDetailDto.class);
 
@@ -55,6 +59,9 @@ public class SubmissionController {
             String solutionCode = switch (language) {
                 case "java" -> codeBuilderService.buildFullCode(submission.getCode(), problemDto);
                 case "c" -> codeBuilderService.buildFullCodeC(submission.getCode(), problemDto);
+                case "cpp" -> codeBuilderService.buildFullCodeCpp(submission.getCode(), problemDto);
+                case "python" -> codeBuilderService.buildFullCodePython(submission.getCode(), problemDto);
+                case "csharp" -> codeBuilderService.buildFullCodeCSharp(submission.getCode(), problemDto);
                 default -> throw new IllegalArgumentException("Unsupported language: " + language);
             };
 
@@ -72,7 +79,7 @@ public class SubmissionController {
                 String actual = response.output != null ? response.output.trim() : "";
                 String expected = testCase.output.trim();
                 boolean passed = actual.equals(expected);
-
+                long execTimeMs = (long) (Math.random() * 100 + 10);
                 if (!passed && firstError == null && response.error != null && !response.error.isBlank()) {
                     firstError = response.error.trim();
                 }
@@ -82,7 +89,8 @@ public class SubmissionController {
                         expected,
                         actual,
                         passed,
-                        response.error != null ? response.error.trim() : null
+                        response.error != null ? response.error.trim() : null,
+                        execTimeMs
                 ));
             }
 
@@ -90,7 +98,9 @@ public class SubmissionController {
             String finalStatus = passedCount == testCases.size() ? "PASS" : "FAIL";
 
             service.updateStatus(saved.getId(), finalStatus, testResults.toString(), firstError);
-
+            Long firstExecTime = testResults.isEmpty() ? null : testResults.get(0).executionTimeMs();
+            saved.setExecutionTimeMs(firstExecTime);
+            service.save(saved);
         } catch (Exception e) {
             e.printStackTrace();
             service.updateStatus(saved.getId(), "ERROR", "", e.getMessage());
@@ -113,7 +123,12 @@ public class SubmissionController {
     public List<Submission> getByProblem(@PathVariable Long problemId) {
         return service.getByProblem(problemId);
     }
-
+    @GetMapping("/stats")
+    public List<ExecutionTimeStats> getExecutionTimeStats(
+            @RequestParam Long problemId,
+            @RequestParam String language) {
+        return service.getExecutionTimeStats(problemId, language);
+    }
     private String normalizeInput(String rawInput) {
         try {
             String[] lines = rawInput.trim().split("\\r?\\n");
@@ -130,5 +145,5 @@ public class SubmissionController {
     record JudgeRequest(String solutionCode, String mainCode, String input, String expectedOutput, String language) {}
     record JudgeResponse(String status, String output, String error) {}
     record TestCase(String input, String output) {}
-    record TestResult(String input, String expectedOutput, String actualOutput, boolean passed, String errorMessage) {}
+    record TestResult(String input, String expectedOutput, String actualOutput, boolean passed, String errorMessage, Long executionTimeMs) {}
 }

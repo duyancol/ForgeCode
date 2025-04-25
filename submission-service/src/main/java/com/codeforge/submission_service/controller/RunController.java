@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/run")
 public class RunController {
@@ -64,7 +64,14 @@ public class RunController {
                 solutionCode = codeBuilderService.buildFullCode(submission.getCode(), problemDto);
             } else if (language.equals("c")) {
                 solutionCode = codeBuilderService.buildFullCodeC(submission.getCode(), problemDto);
-            } else {
+            }else if (language.equals("cpp")) {
+                solutionCode = codeBuilderService.buildFullCodeCpp(submission.getCode(), problemDto);
+            }else if (language.equals("python")) {
+                solutionCode = codeBuilderService.buildFullCodePython(submission.getCode(), problemDto);
+            }else if (language.equals("csharp")) {
+                solutionCode = codeBuilderService.buildFullCodeCSharp(submission.getCode(), problemDto);
+            }
+            else {
                 throw new IllegalArgumentException("Unsupported language: " + language);
             }
 

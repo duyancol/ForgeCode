@@ -15,7 +15,7 @@ public class DockerRunner {
 
     public static JudgeResponse run(JudgeRequest req) throws Exception {
         Path tempRoot = Paths.get("/tmp/docker_tmp");
-        //Path tempRoot = Paths.get("C:/docker_tmp");
+       // Path tempRoot = Paths.get("C:/docker_tmp");
 
         if (!Files.exists(tempRoot)) Files.createDirectories(tempRoot);
         Path tempDir = Files.createTempDirectory(tempRoot, "judge_");
@@ -56,6 +56,25 @@ public class DockerRunner {
                 File mainFile = new File(tempDir.toFile(), "main.cpp");
                 Files.write(cppFile.toPath(), req.getSolutionCode().getBytes(StandardCharsets.UTF_8));
                 Files.write(mainFile.toPath(), req.getMainCode().getBytes(StandardCharsets.UTF_8));
+            }
+            case "python", "py" -> {
+                image = "python:3.10";
+                runCommand = "python3 main.py < input.txt > output.txt";
+
+                File pyMainFile = new File(tempDir.toFile(), "main.py");
+                File pySolutionFile = new File(tempDir.toFile(), "solution.py");
+
+                // 🧠 mainCode là file main.py
+                // 🧠 solutionCode là file solution.py
+                Files.write(pyMainFile.toPath(), req.getMainCode().getBytes(StandardCharsets.UTF_8));
+                Files.write(pySolutionFile.toPath(), req.getSolutionCode().getBytes(StandardCharsets.UTF_8));
+            }
+            case "csharp", "c#" -> {
+                image = "mcr.microsoft.com/dotnet/sdk:7.0";
+                runCommand = "dotnet new console -n JudgeApp -o app && cd app && echo \"" +
+                        req.getSolutionCode().replace("\"", "\\\"") + "\" > Solution.cs && echo \"" +
+                        req.getMainCode().replace("\"", "\\\"") + "\" >> Program.cs && dotnet run < ../input.txt > ../output.txt";
+                // tạo file input.txt như bình thường, phần build/run dotnet sẽ xử lý bên trong container
             }
             default -> throw new IllegalArgumentException("Unsupported language: " + req.getLanguage());
         }
