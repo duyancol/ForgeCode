@@ -27,4 +27,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
                                                   @Param("language") String language);
 
 
+    @Query("SELECT DISTINCT s.problemId FROM Submission s WHERE s.userId = :userId AND s.status = 'PASS'")
+    List<Long> findAcceptedProblemIdsByUserId(String userId);
 }

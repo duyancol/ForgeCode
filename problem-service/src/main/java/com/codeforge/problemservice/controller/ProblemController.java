@@ -42,7 +42,10 @@ public class ProblemController {
     public List<Problem> getByDifficulty(@PathVariable String level) {
         return service.getByDifficulty(level);
     }
-
+    @GetMapping("/tag")
+    public List<String> getAllTags() {
+        return service.getAllTags();
+    }
     // GET by tag
     @GetMapping("/tag/{tag}")
     public List<Problem> getByTag(@PathVariable String tag) {

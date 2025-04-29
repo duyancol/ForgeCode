@@ -56,4 +56,7 @@ public class SubmissionService {
     public List<ExecutionTimeStats> getExecutionTimeStats(Long problemId, String language) {
         return repo.countByExecutionTime(problemId, language);
     }
+    public List<Long> getAcceptedProblems(String userId) {
+        return repo.findAcceptedProblemIdsByUserId(userId);
+    }
 }

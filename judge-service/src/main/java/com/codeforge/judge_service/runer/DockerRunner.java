@@ -22,11 +22,11 @@ public class DockerRunner {
 
         String language = req.getLanguage().toLowerCase();
         if (language.equals("java") && (req.getSolutionCode() == null || req.getMainCode() == null)) {
-            return new JudgeResponse("ERROR", "", "Missing Java code to compile");
+            return new JudgeResponse("ERROR", "", "Missing Java code to compile",0);
         }
         if ((language.equals("c") || language.equals("cpp") || language.equals("c++")) &&
                 (req.getSolutionCode() == null || req.getMainCode() == null)) {
-            return new JudgeResponse("ERROR", "", "Missing C/C++ code to compile");
+            return new JudgeResponse("ERROR", "", "Missing C/C++ code to compile",0);
         }
 
         String image;
@@ -104,11 +104,17 @@ public class DockerRunner {
         pb.redirectErrorStream(true);
         System.out.println("\uD83D\uDC49 Docker command: " + String.join(" ", pb.command()));
 
+        long startTime = System.nanoTime(); // 🔥 Bắt đầu đo
         Process p = pb.start();
         boolean finished = p.waitFor(5, TimeUnit.SECONDS);
+        long endTime = System.nanoTime(); // 🔥 Kết thúc đo
+
+        long executionTimeMs = ((endTime - startTime) / 1_000_000); // Chia nano -> milli
+        System.out.println("👉 Execution time: " + executionTimeMs + " ms"); // In thời gian ra log
+
         if (!finished) {
             p.destroyForcibly();
-            return new JudgeResponse("TLE", "", "Time Limit Exceeded");
+            return new JudgeResponse("TLE", "", "Time Limit Exceeded",0);
         }
 
         InputStream processOutput = p.getInputStream();
@@ -124,7 +130,7 @@ public class DockerRunner {
 
         String status = (p.exitValue() == 0 && normalizedOutput.equals(normalizedExpected)) ? "PASS" : "FAIL";
 
-        return new JudgeResponse(status, output, logs);
+        return new JudgeResponse(status, output, logs,executionTimeMs);
     }
 }
 //package com.codeforge.judge_service.runer;

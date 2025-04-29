@@ -221,6 +221,7 @@ public String buildFullCodeCpp(String userCodeBody, ProblemDetailDto problem) {
             .append("#include <climits>\n")
             .append("#include <algorithm>\n")
             .append("#include <stack>\n")
+            .append("#include <unordered_map>\n")
             .append("using namespace std;\n\n")
             .append("class Solution {\n")
             .append("public:\n")

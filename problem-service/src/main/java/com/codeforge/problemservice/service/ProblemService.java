@@ -49,7 +49,9 @@ public class ProblemService {
         }).toList();
     }
 
-
+    public List<String> getAllTags() {
+        return repo.findAllTags();
+    }
     public Optional<Problem> getById(Long id) {
         return repo.findById(id);
     }

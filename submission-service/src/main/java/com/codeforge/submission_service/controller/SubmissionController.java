@@ -36,7 +36,7 @@ public class SubmissionController {
         try {
             RestTemplate restTemplate = new RestTemplate();
             String judgeUrl = "http://14.225.205.6:8082/api/judge";
-           // String judgeUrl = "http://localhost:8082/api/judge";
+            //String judgeUrl = "http://localhost:8082/api/judge";
             String problemUrl = "http://14.225.205.6:8080/api/problems/" + submission.getProblemId();
 
             ProblemDetailDto problemDto = restTemplate.getForObject(problemUrl, ProblemDetailDto.class);
@@ -79,7 +79,8 @@ public class SubmissionController {
                 String actual = response.output != null ? response.output.trim() : "";
                 String expected = testCase.output.trim();
                 boolean passed = actual.equals(expected);
-                long execTimeMs = (long) (Math.random() * 100 + 10);
+                long execTimeMs = response.executionTimeMs() != null ? response.executionTimeMs() : 0L;
+
                 if (!passed && firstError == null && response.error != null && !response.error.isBlank()) {
                     firstError = response.error.trim();
                 }
@@ -129,6 +130,10 @@ public class SubmissionController {
             @RequestParam String language) {
         return service.getExecutionTimeStats(problemId, language);
     }
+    @GetMapping("/user/{userId}/accepted-problems")
+    public List<Long> getUserAcceptedProblems(@PathVariable String userId) {
+        return service.getAcceptedProblems(userId);
+    }
     private String normalizeInput(String rawInput) {
         try {
             String[] lines = rawInput.trim().split("\\r?\\n");
@@ -143,7 +148,7 @@ public class SubmissionController {
 
     // --- DTO nội bộ ---
     record JudgeRequest(String solutionCode, String mainCode, String input, String expectedOutput, String language) {}
-    record JudgeResponse(String status, String output, String error) {}
+    record JudgeResponse(String status, String output, String error, Long executionTimeMs) {}
     record TestCase(String input, String output) {}
     record TestResult(String input, String expectedOutput, String actualOutput, boolean passed, String errorMessage, Long executionTimeMs) {}
 }

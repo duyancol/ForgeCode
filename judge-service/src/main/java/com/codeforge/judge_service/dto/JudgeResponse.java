@@ -11,4 +11,6 @@ public class JudgeResponse {
     private String status;       // PASS, FAIL, ERROR, TLE,...
     private String output;
     private String error;
+    private long executionTimeMs; // Thêm field mới
+
 }
