@@ -54,11 +54,6 @@ Gateway (Nginx)
 
 ---
 
-## 📸 Screenshots (Coming Soon)
-
-| Code Editor | Result Panel | Admin Dashboard |
-|-------------|--------------|-----------------|
-| ![editor](./screenshots/editor.png) | ![result](./screenshots/result.png) | ![admin](./screenshots/admin.png) |
 
 ---
 
@@ -90,8 +85,8 @@ npm run dev
 
 ## 🗓️ Development Timeline
 
-- Duration: 3 weeks
-- Total services: 3 (problem-service, submission-service, judge-service)
+- Duration: 6 weeks
+- Total services: 5 (problem-service, submission-service, judge-service, user_service, admin_service)
 - Deploy: VPS (Ubuntu) with HTTPS (Certbot + Nginx)
 - Architecture: Microservices + Docker + Message Queue
 
