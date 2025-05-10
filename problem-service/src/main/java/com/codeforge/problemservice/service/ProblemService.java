@@ -1,6 +1,7 @@
 package com.codeforge.problemservice.service;
 
 import com.codeforge.problemservice.dto.ProblemDetailDto;
+import com.codeforge.problemservice.dto.ProblemSummaryDTO;
 import com.codeforge.problemservice.dto.ProblemTemplateDto;
 import com.codeforge.problemservice.model.Problem;
 import com.codeforge.problemservice.repository.ProblemRepository;
@@ -51,6 +52,9 @@ public class ProblemService {
 
     public List<String> getAllTags() {
         return repo.findAllTags();
+    }
+    public List<ProblemSummaryDTO> getAllProblemSummaries() {
+        return repo.findAllSummaries();
     }
     public Optional<Problem> getById(Long id) {
         return repo.findById(id);

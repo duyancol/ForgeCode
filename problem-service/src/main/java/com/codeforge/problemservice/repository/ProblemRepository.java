@@ -1,5 +1,6 @@
 package com.codeforge.problemservice.repository;
 
+import com.codeforge.problemservice.dto.ProblemSummaryDTO;
 import com.codeforge.problemservice.model.Problem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,5 +18,8 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     // Tìm theo tag
     @Query(value = "SELECT problem_id FROM problem_tags WHERE tags = :tag", nativeQuery = true)
     List<Long> findProblemIdsByTag(String tag);
+    @Query("SELECT new com.codeforge.problemservice.dto.ProblemSummaryDTO(p.id, p.title, p.difficulty) FROM Problem p")
+    List<ProblemSummaryDTO> findAllSummaries();
+
 
 }

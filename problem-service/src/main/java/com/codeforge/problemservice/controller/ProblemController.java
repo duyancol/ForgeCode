@@ -1,6 +1,7 @@
 package com.codeforge.problemservice.controller;
 
 import com.codeforge.problemservice.dto.ProblemDetailDto;
+import com.codeforge.problemservice.dto.ProblemSummaryDTO;
 import com.codeforge.problemservice.dto.ProblemTemplateDto;
 import com.codeforge.problemservice.model.Problem;
 import com.codeforge.problemservice.service.ProblemService;
@@ -24,11 +25,14 @@ public class ProblemController {
     }
 
     // GET all problems
+//    @GetMapping
+//    public List<ProblemDetailDto> getAll() {
+//        return service.getAllProblems();
+//    }
     @GetMapping
-    public List<ProblemDetailDto> getAll() {
-        return service.getAllProblems();
+    public List<ProblemSummaryDTO> getAll() {
+        return service.getAllProblemSummaries();
     }
-
     // GET problem by ID with full detail including templates
     @GetMapping("/{id}")
     public ResponseEntity<ProblemDetailDto> getProblemById(@PathVariable Long id) {
