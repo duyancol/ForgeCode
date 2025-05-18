@@ -9,10 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @Builder
@@ -25,7 +22,8 @@ public class Token {
     @GeneratedValue
     public Integer id;
 
-    @Column(unique = true)
+    @Column(unique = true, length = 512)
+
     public String token;
 
     @Enumerated(EnumType.STRING)
@@ -37,5 +35,6 @@ public class Token {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
     public User user;
 }

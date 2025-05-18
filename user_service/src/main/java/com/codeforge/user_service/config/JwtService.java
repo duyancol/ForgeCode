@@ -13,7 +13,8 @@ import java.util.Map;
 import java.util.function.Function;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
+import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
 @Service
 public class JwtService {
 
@@ -42,7 +43,23 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 50000 * 60 ))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+
+
+    // ✅ Generate Token with extra claims (IP, User-Agent)
+    public String generateToken1(Map<String, Object> extraClaims, UserDetails userDetails, String ip, String ua) {
+        extraClaims.put("ip", ip);
+        extraClaims.put("ua", ua);
+        return Jwts
+                .builder()
+                .setClaims(extraClaims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 phút
+                .signWith(Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8)), SignatureAlgorithm.HS256)
                 .compact();
     }
 

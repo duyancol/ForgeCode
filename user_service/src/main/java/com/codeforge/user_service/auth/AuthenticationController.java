@@ -11,18 +11,22 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.time.Duration;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
-@CrossOrigin("*")
+
 @RequiredArgsConstructor
 public class AuthenticationController {
     private final UserRepository repository;
@@ -32,77 +36,124 @@ public class AuthenticationController {
     private final TokenRepository tokenRepository;
     @Autowired
     private final JwtService jwtService;
-    @PostMapping("/google/{id}")
-    public User authenticateWithGoogle(@PathVariable("id") String googleIdToken ) {
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
-                .setAudience(Collections.singletonList("272854032499-uvoh7etrb27k4sp664qd3baj900l703l.apps.googleusercontent.com")) // Thay thế bằng Google Client ID của bạn
-                .build();
-
-        try {
-            // Xác thực Google ID token
-            GoogleIdToken idToken = verifier.verify(googleIdToken);
-            if (idToken != null) {
-                GoogleIdToken.Payload payload = idToken.getPayload();
-
-                // Lấy thông tin người dùng từ Payload
-                String userId = payload.getSubject();
-                String email = payload.getEmail();
-                String fullName = (String) payload.get("name");
-                Optional<User> existingUserOptional = repository.findByEmail(email);
-
-
-                if (existingUserOptional.isPresent()) {
-                    int id=0;
-                    // Nếu tài khoản đã tồn tại, trả về thông tin người dùng từ cơ sở dữ liệu
-//          User existingUser = existingUserOptional.get();
-                    System.out.println("LOI GI O DAY luu duoc");
-
-                    List<User> list = repository.findAll();
-                    for( User u : list){
-                        if(u.getEmail().equals(email)){
-                            id=u.getId();
-                        }
-                    }
-                    User newUser = new User(id,userId, fullName, email,Role.USER);
-                    return newUser;
-                } else {
-
-//          // Nếu tài khoản chưa tồn tại, tạo mới một đối tượng User từ thông tin người dùng
-//          User newUser = new User(userId, fullName, email,Role.USER);
+//    @PostMapping("/google/{id}")
+//    public ResponseEntity<AuthenticationResponse> authenticateWithGoogle(@PathVariable("id") String googleIdToken) {
+//        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
+//                .setAudience(Collections.singletonList("272854032499-uvoh7etrb27k4sp664qd3baj900l703l.apps.googleusercontent.com"))
+//                .build();
 //
-//          // Lưu thông tin người dùng vào cơ sở dữ liệu bằng UserRepository
-//          repository.save(newUser);
+//        try {
+//            GoogleIdToken idToken = verifier.verify(googleIdToken);
+//            if (idToken != null) {
+//                GoogleIdToken.Payload payload = idToken.getPayload();
 //
-//          // Trả về thông tin người dùng mới
-//          System.out.println("luu duoc");
+//                String userId = payload.getSubject();
+//                String email = payload.getEmail();
+//                String fullName = (String) payload.get("name");
+//
+//                Optional<User> existingUserOptional = repository.findByEmail(email);
+//                if (existingUserOptional.isPresent()) {
+//                    User existingUser = existingUserOptional.get();
+//                    String jwtToken = jwtService.generateToken(existingUser);
+//                    return ResponseEntity.ok(
+//                            AuthenticationResponse.builder()
+//                                    .id(existingUser.getId())
+//                                    .token(jwtToken)
+//                                    .firstname(existingUser.getFirstname())
+//                                    .email(existingUser.getEmail())
+//                                    .build()
+//                    );
+//                } else {
+//                    var user = User.builder()
+//                            .userId(userId)
+//                            .firstname(fullName)
+//                            .email(email)
+//                            .role(Role.USER)
+//                            .build();
+//                    var savedUser = repository.save(user);
+//                    String jwtToken = jwtService.generateToken(savedUser);
+//                    saveUserToken(savedUser, jwtToken);
+//
+//                    return ResponseEntity.ok(
+//                            AuthenticationResponse.builder()
+//                                    .id(savedUser.getId())
+//                                    .token(jwtToken)
+//                                    .firstname(savedUser.getFirstname())
+//                                    .email(savedUser.getEmail())
+//                                    .build()
+//                    );
+//                }
+//            } else {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//        }
+//    }
 
-                    var user = User.builder()
-                            .userId(userId)
-                            .firstname(fullName)
-                            .email(email)
-                            .role(Role.USER)
-                            .build();
-                    var savedUser = repository.save(user);
-                    var jwtToken = jwtService.generateToken(user);
-                    saveUserToken(savedUser, jwtToken);
-                    System.out.println("luu duoc");
-                    return savedUser;
+@PostMapping("/google")
+public ResponseEntity<?> authenticateWithGoogle(
+        @RequestBody Map<String, String> body,
+        HttpServletRequest request,
+        HttpServletResponse response) {
 
-                }
+    String googleIdToken = body.get("idToken");
 
+    GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
+            .setAudience(Collections.singletonList("272854032499-uvoh7etrb27k4sp664qd3baj900l703l.apps.googleusercontent.com"))
+            .build();
 
-            } else {
-                // Xác thực không thành công
-                System.out.println("k luu duoc");
-                return null;
-            }
-        } catch (Exception e) {
-            // Xử lý lỗi xác thực
-            e.printStackTrace();
-            System.out.println("loi");
-            return null;
+    try {
+        GoogleIdToken idToken = verifier.verify(googleIdToken);
+        if (idToken != null) {
+            GoogleIdToken.Payload payload = idToken.getPayload();
+
+            String userId = payload.getSubject();
+            String email = payload.getEmail();
+            String fullName = (String) payload.get("name");
+
+            User user = repository.findByEmail(email).orElseGet(() -> {
+                User newUser = User.builder()
+                        .userId(userId)
+                        .firstname(fullName)
+                        .email(email)
+                        .role(Role.USER)
+                        .build();
+                return repository.save(newUser);
+            });
+
+            String clientIp = request.getRemoteAddr();
+            String userAgent = request.getHeader("User-Agent");
+
+            String jwtToken = jwtService.generateToken1(new HashMap<>(), user, clientIp, userAgent);
+            saveUserToken(user, jwtToken); // vẫn giữ
+
+            ResponseCookie cookie = ResponseCookie.from("access_token", jwtToken)
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(Duration.ofMinutes(15))
+                    .sameSite("Strict")
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(Map.of(
+                            "id", user.getId(),
+                            "firstname", user.getFirstname(),
+                            "email", user.getEmail()
+                    ));
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Google token.");
         }
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
     }
+}
+
+
     private void saveUserToken(User user, String jwtToken) {
         var token = Token.builder()
                 .user(user)
@@ -111,6 +162,7 @@ public class AuthenticationController {
                 .expired(false)
                 .revoked(false)
                 .build();
+        System.out.println(token);
         tokenRepository.save(token);
     }
     @PostMapping("/register")
