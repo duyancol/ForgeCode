@@ -37,19 +37,20 @@ An online judge system inspired by LeetCode. Built from scratch to support real-
 
 ```
 Frontend (ReactJS)
-     |
-     ▼
-Gateway (Nginx)
-     |
- ┌──────────┌──────────┌──────────┌
- | ProblemSvc | SubmitSvc  | JudgeSvc   |
- └──────────┘──────────┘──────────┘
-       |         ▲             |
-       ▼         |             ▼
-     MySQL     RabbitMQ      Docker
-       ▲
-       ▼
-     Redis
+      |
+      ▼
+ API Gateway (Nginx)
+      |
+ ┌────────────┬──────────────┬─────────────┬────────────┐
+ | ProblemSvc | SubmissionSvc | JudgeSvc   | UserSvc    |
+ └────────────┴──────────────┴─────────────┴────────────┘
+      |               ▲              | 
+      ▼               |              ▼
+   MySQL           RabbitMQ        Docker
+      ▲
+      ▼
+    Redis
+
 ```
 
 ---
@@ -86,7 +87,7 @@ npm run dev
 ## 🗓️ Development Timeline
 
 - Duration: 6 weeks
-- Total services: 5 (problem-service, submission-service, judge-service, user_service, admin_service)
+- Total services: 5 (problem-service, submission-service, judge-service, user_service, API Gateway, notifier_service, difficult_service)
 - Deploy: VPS (Ubuntu) with HTTPS (Certbot + Nginx)
 - Architecture: Microservices + Docker + Message Queue
 
